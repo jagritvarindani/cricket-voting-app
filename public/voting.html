@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>🏏 Cricket Match Voting App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+  <style>
+    body {
+      background: #121212;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+    .cancel-btn {
+      position: relative;
+      background: #222;
+      color: #fff;
+      border: 2px solid #00aaff;
+      padding: 15px;
+      border-radius: 8px;
+      width: 100%;
+      margin-top: 10px;
+      cursor: pointer;
+      overflow: hidden;
+    }
+    .cancel-btn::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-image: radial-gradient(circle, rgba(0,170,255,0.3) 20%, transparent 21%),
+        radial-gradient(circle, rgba(0,170,255,0.3) 20%, transparent 21%),
+        radial-gradient(circle, rgba(0,170,255,0.3) 20%, transparent 21%);
+      background-size: 8px 8px;
+      background-repeat: repeat;
+      background-position: 0 0, 4px 4px, 2px 6px;
+      opacity: 0;
+      transition: opacity 0.3s ease-in-out;
+      animation: subtleDrip 3s linear infinite;
+    }
+    .cancel-btn:hover::after, .cancel-btn:active::after { opacity: 1; }
+    @keyframes subtleDrip {
+      0% { background-position: 0 0, 4px 4px, 2px 6px; }
+      50% { background-position: 0 2px, 4px 6px, 2px 8px; }
+      100% { background-position: 0 0, 4px 4px, 2px 6px; }
+    }
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .header-bar h1 {
+      padding: 15px;
+      background: linear-gradient(90deg, #ff5722, #ffc107);
+      border-radius: 12px;
+    }
+    .header-info { font-size: 0.9em; }
+    .header-info a { color: #ffc107; text-decoration: none; margin-left: 10px; }
+    .select2-results { color: #1a1a1a !important; }
+    .date-picker { margin-bottom: 20px; font-size: 1.1em; }
+    .matches-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+    .card {
+      background: #1f1f1f;
+      border: 2px solid #ffc107;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 350px;
+      cursor: pointer;
+      padding: 15px;
+    }
+    .card:hover { transform: translateY(-5px); }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      overflow: auto;
+    }
+    .modal-content {
+      background: #2c2c2c;
+      margin: 20px auto;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 600px;
+    }
+    .close {
+      position: absolute;
+      top: 15px; right: 20px;
+      font-size: 25px;
+      cursor: pointer;
+      color: #ffc107;
+    }
+    .vote-btn, .submit-btn, .declare-btn, .declare-motm-btn, .cancel-btn {
+      background: #ff5722;
+      color: #fff;
+      border: none;
+      padding: 15px;
+      border-radius: 8px;
+      width: 100%;
+      margin-top: 10px;
+      cursor: pointer;
+    }
+    .vote-btn.selected { background: #4CAF50; }
+    .dropdown { width: 100% !important; margin-top: 10px; }
+    .motm-label { margin-top: 10px; font-weight: bold; }
+    @media (max-width: 600px) {
+      .card { width: 100%; }
+      .modal-content { width: 95%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <h1>🏏 Cricket Voting App</h1>
+    <div class="header-info">
+      <span id="userEmail"></span>
+      <a href="scoreboard.html">View Scoreboard</a>
+    </div>
+  </div>
+  <div class="date-picker">
+    <label for="matchDate">Select Date: </label>
+    <input type="date" id="matchDate" onchange="renderMatches()">
+  </div>
+  <div class="matches-container" id="matchesContainer"></div>
+  <div class="modal" id="matchModal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+  <script>
+    Chart.register(ChartDataLabels);
+
+    if (!localStorage.getItem('user')) {
+      window.location.href = 'login.html';
+    }
+    const user = JSON.parse(localStorage.getItem('user'));
+    document.getElementById('userEmail').innerText = "Logged in as: " + user.email;
+
+    let matches = [];
+    let selectedTeam = null;
+    const matchesContainer = document.getElementById('matchesContainer');
+    const modal = document.getElementById('matchModal');
+    const modalContent = document.getElementById('modalContent');
+
+    // Set default date to today (Asia/Kolkata)
+    const dateInput = document.getElementById('matchDate');
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    dateInput.value = today;
+
+    // Load matches from server
+    fetch('/matches')
+      .then(res => res.json())
+      .then(data => {
+        matches = data;
+        renderMatches();
+      })
+      .catch(err => {
+        matchesContainer.innerHTML = '<p>Error loading matches.</p>';
+      });
+
+    function renderMatches() {
+      const selectedDate = document.getElementById('matchDate').value;
+      const filtered = matches.filter(m => m.date === selectedDate);
+      if (!filtered.length) {
+        matchesContainer.innerHTML = `<p>No matches scheduled for ${selectedDate}.</p>`;
+        return;
+      }
+      fetch('/results')
+        .then(res => res.json())
+        .then(resultsData => {
+          const resultsMap = {};
+          resultsData.results.forEach(r => { resultsMap[r.matchName] = r; });
+          matchesContainer.innerHTML = filtered.map(match => {
+            let extra = "";
+            if (resultsMap[match.title]) {
+              const r = resultsMap[match.title];
+              extra += `<br><strong>Winner: ${r.winner || "N/A"}</strong>`;
+              extra += `<br><strong>MOTM: ${r.declaredMotm || "N/A"}</strong>`;
+            }
+            return `<div class="card" onclick="openModal('${match.title}')">
+                      <h3>${match.title}</h3>
+                      <p>Date: ${match.date} | Time: ${match.time}</p>
+                      <p>${extra}</p>
+                    </div>`;
+          }).join('');
+        })
+        .catch(err => {
+          matchesContainer.innerHTML = filtered.map(match =>
+            `<div class="card" onclick="openModal('${match.title}')">
+              <h3>${match.title}</h3>
+              <p>Date: ${match.date} | Time: ${match.time}</p>
+            </div>`
+          ).join('');
+        });
+    }
+
+    function openModal(title) {
+      const match = matches.find(m => m.title === title);
+      const teamNames = Object.keys(match.teams);
+      const teamA = teamNames[0];
+      const teamB = teamNames[1];
+      const teamAPlayers = match.teams[teamA];
+      const teamBPlayers = match.teams[teamB];
+      const matchDateTime = new Date(`${match.date}T${match.time}:00`);
+      const freezeTime = matchDateTime.getTime() - 60000;
+      const isVotingClosed = Date.now() >= freezeTime;
+
+      if (!isVotingClosed) {
+        modalContent.innerHTML =
+          `<h2>${match.title}</h2>
+          <p>Date: ${match.date} | Time: ${match.time}</p>
+          <button class="vote-btn" id="voteTeamA" onclick="castVote('A')">Vote for ${teamA}</button>
+          <button class="vote-btn" id="voteTeamB" onclick="castVote('B')">Vote for ${teamB}</button>
+          <h3>Vote for Man of the Match</h3>
+          <div class="motm-label">MOTM from ${teamA}:</div>
+          <select class="dropdown teamASelect">
+            <option value="">Select player from ${teamA}</option>
+            ${teamAPlayers.map(p => `<option value="${p}">${p}</option>`).join('')}
+          </select>
+          <div class="motm-label">MOTM from ${teamB}:</div>
+          <select class="dropdown teamBSelect">
+            <option value="">Select player from ${teamB}</option>
+            ${teamBPlayers.map(p => `<option value="${p}">${p}</option>`).join('')}
+          </select>
+          <button class="submit-btn" onclick="submitVotes('${match.title}')">Submit Vote</button>`;
+      } else {
+        if (user.email === "jeetandra@gmail.com" || user.email === "jagrit@gmail.com") {
+          modalContent.innerHTML =
+            `<h2>${match.title} - Voting Closed</h2>
+            <p>Date: ${match.date} | Time: ${match.time}</p>
+            <h3>Declare Winner</h3>
+            <div style="display: flex; gap:10px;">
+              <button class="declare-btn" onclick="declareWinner('${match.title}', '${teamA}')">${teamA}</button>
+              <button class="declare-btn" onclick="declareWinner('${match.title}', '${teamB}')">${teamB}</button>
+            </div>
+            <h3>Declare Man of the Match</h3>
+            <div style="display: flex; gap:10px;">
+              <select class="dropdown motmSelect">
+                <option value="">Select MOTM from ${teamA}</option>
+                ${teamAPlayers.map(p => `<option value="${p}">${p}</option>`).join('')}
+              </select>
+              <select class="dropdown motmSelect">
+                <option value="">Select MOTM from ${teamB}</option>
+                ${teamBPlayers.map(p => `<option value="${p}">${p}</option>`).join('')}
+              </select>
+            </div>
+            <button class="declare-motm-btn" onclick="declareMotm('${match.title}')">Declare MOTM</button>
+            <button class="declare-btn" onclick="finalizeMatch('${match.title}')">Finalize Match</button>
+            <button class="cancel-btn" onclick="cancelMatch('${match.title}')">Match Cancelled</button>
+            <div id="voteStats">
+              <h3>Vote Distribution</h3>
+              <div><canvas id="teamVotesChart" style="width:200px; height:200px;"></canvas></div>
+              <div style="margin-top:20px;"><canvas id="motmVotesChart"></canvas></div>
+            </div>`;
+        } else {
+          modalContent.innerHTML =
+            `<h2>${match.title} - Voting Closed</h2>
+            <p>You are not authorized to declare the winner or MOTM for this match.</p>
+            <div id="voteStats">
+              <h3>Vote Distribution</h3>
+              <div style="display: flex; gap:20px;">
+                <div style="flex: 1;"><canvas id="teamVotesChart" style="width:200px; height:200px;"></canvas></div>
+                <div style="flex: 1;"><canvas id="motmVotesChart"></canvas></div>
+              </div>
+            </div>`;
+        }
+        fetchVoteStats(match.title);
+      }
+      setTimeout(() => {
+        $('.dropdown').select2({ placeholder: 'Select an option', width: 'resolve' });
+      }, 100);
+      selectedTeam = null;
+      modal.style.display = "block";
+    }
+
+    function castVote(team) {
+      document.getElementById('voteTeamA').classList.remove('selected');
+      document.getElementById('voteTeamB').classList.remove('selected');
+      if (team === 'A') {
+        document.getElementById('voteTeamA').classList.add('selected');
+      } else {
+        document.getElementById('voteTeamB').classList.add('selected');
+      }
+      selectedTeam = team;
+    }
+
+    function submitVotes(matchTitle) {
+      const match = matches.find(m => m.title === matchTitle);
+      const matchDateTime = new Date(`${match.date}T${match.time}:00`);
+      const freezeTime = matchDateTime.getTime() - 60000;
+      if (Date.now() >= freezeTime) { alert("Voting is closed."); closeModal(); return; }
+      if (!selectedTeam) { alert("Please cast your vote."); return; }
+      const teamA_sel = $('.teamASelect').val();
+      const teamB_sel = $('.teamBSelect').val();
+      const motmSelections = [teamA_sel, teamB_sel].filter(val => val !== "");
+      if (motmSelections.length !== 1) { alert("Please select exactly one candidate for Man of the Match."); return; }
+      const voteDetails = {
+        matchDate: match.date,
+        matchName: match.title,
+        votedTeam: selectedTeam === 'A' ? Object.keys(match.teams)[0] : Object.keys(match.teams)[1],
+        motm: {
+          teamA: teamA_sel ? [teamA_sel] : [""],
+          teamB: teamB_sel ? [teamB_sel] : [""]
+        }
+      };
+      if (confirm("Submit your vote?")) {
+        fetch('/vote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: user.email, voteDetails })
+        }).then(res => res.json()).then(result => { alert(result.message); closeModal(); });
+      }
+    }
+
+    function declareWinner(matchTitle, winnerTeam) {
+      fetch('/declare-winner', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchName: matchTitle, winner: winnerTeam })
+      }).then(res => res.json()).then(result => { alert(result.message); renderMatches(); closeModal(); });
+    }
+
+    function declareMotm(matchTitle) {
+      const motmSelections = $('.motmSelect').map(function() { return $(this).val(); }).get().filter(val => val !== "");
+      if (motmSelections.length !== 1) { alert("Please select exactly one MOTM candidate."); return; }
+      fetch('/declare-motm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchName: matchTitle, declaredMotm: motmSelections[0] })
+      }).then(res => res.json()).then(result => { alert(result.message); renderMatches(); closeModal(); });
+    }
+
+    function finalizeMatch(matchTitle) {
+      fetch('/finalize-match', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchName: matchTitle })
+      }).then(res => res.json()).then(result => { alert(result.message); renderMatches(); closeModal(); });
+    }
+
+    function cancelMatch(matchTitle) {
+      if (confirm("Are you sure you want to cancel this match? No financial updates will be applied.")) {
+        fetch('/match-cancelled', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ matchName: matchTitle })
+        }).then(res => res.json()).then(result => { alert(result.message); renderMatches(); closeModal(); });
+      }
+    }
+
+    function closeModal() { modal.style.display = "none"; }
+
+    function fetchVoteStats(matchTitle) {
+      fetch(`/vote-stats?matchName=${encodeURIComponent(matchTitle)}`)
+        .then(res => res.json())
+        .then(data => {
+          renderTeamVotesChart(data.teamVotes, data.totalVoters);
+          renderMotmVotesChart(data.motmVotes, data.totalVoters);
+        })
+        .catch(err => console.error("Error fetching vote stats: ", err));
+    }
+
+    function renderTeamVotesChart(teamVotesData, totalVoters) {
+      const ctx = document.getElementById('teamVotesChart').getContext('2d');
+      const votesArray = Object.values(teamVotesData);
+      const sumVotes = votesArray.reduce((acc, val) => acc + val, 0);
+      const noVote = totalVoters - sumVotes;
+      const labels = [...Object.keys(teamVotesData), "No Vote"];
+      const votes = [...Object.values(teamVotesData), noVote];
+      new Chart(ctx, {
+        type: 'pie',
+        data: { labels, datasets: [{ data: votes, backgroundColor: ['#4CAF50', '#FF5722', '#9E9E9E'] }] },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom' },
+            datalabels: { display: true, formatter: (value) => value, color: '#fff' }
+          }
+        }
+      });
+    }
+
+    function renderMotmVotesChart(motmVotesData, totalVoters) {
+      const ctx = document.getElementById('motmVotesChart').getContext('2d');
+      const votesArray = Object.values(motmVotesData);
+      const sumVotes = votesArray.reduce((acc, val) => acc + val, 0);
+      const noVote = totalVoters - sumVotes;
+      const labels = [...Object.keys(motmVotesData), "No Vote"];
+      const votes = [...Object.values(motmVotesData), noVote];
+      new Chart(ctx, {
+        type: 'bar',
+        data: { labels, datasets: [{ label: 'MOTM Votes', data: votes, backgroundColor: '#FFC107' }] },
+        options: {
+          responsive: true,
+          plugins: {
+            datalabels: { display: true, formatter: (value) => value, color: '#000' }
+          },
+          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+        }
+      });
+    }
+  </script>
+</body>
+</html>

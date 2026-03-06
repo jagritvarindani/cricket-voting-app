@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Scoreboard - Cricket Voting App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #fff;
+      --accent-color: #ffc107;
+      --card-bg: #1f1f1f;
+      --header-bg: linear-gradient(90deg, #ff5722, #ffc107);
+      --button-bg: #ff5722;
+      --button-hover: #e64a1;
+      --blue-highlight: lightblue;
+    }
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .header-bar h1 {
+      margin: 0;
+      padding: 10px;
+      background: var(--header-bg);
+      border-radius: 12px;
+      text-shadow: 2px 2px 5px #000;
+      color: var(--accent-color);
+      font-size: 1.5em;
+    }
+    .back-link {
+      color: var(--accent-color);
+      text-decoration: none;
+      background: var(--button-bg);
+      padding: 10px 15px;
+      border-radius: 8px;
+      transition: background 0.3s;
+      font-size: 1em;
+      margin-top: 10px;
+    }
+    .back-link:hover { background: var(--button-hover); }
+    #matchSearch {
+      width: 100%;
+      max-width: 400px;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+      background: #1f1f1f;
+      color: #fff;
+      outline: none;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+    #matchSearch::placeholder { color: #bbb; }
+    #matchSearch:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 10px rgba(255, 193, 7, 0.5);
+    }
+    .table-container { overflow-x: auto; }
+    table { border-collapse: collapse; width: 100%; min-width: 600px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; white-space: nowrap; }
+    th {
+      background: var(--header-bg);
+      color: var(--accent-color);
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+    .fixed-col { position: sticky; left: 0; background: var(--card-bg); color: var(--accent-color); z-index: 4; }
+    .fixed-col-end { position: sticky; right: 0; background: var(--card-bg); color: var(--accent-color); z-index: 3; }
+    .green { background-color: #4CAF50; color: #1a1a1a; padding: 2px 4px; }
+    .red { background-color: #F44336; color: #1a1a1a; padding: 2px 4px; }
+    .yellow { background-color: #FFC107; color: #1a1a1a; }
+    .info-line { font-size: 0.9em; margin: 2px 0; }
+    .blue-highlight { background-color: #fff00ba8; }
+    @media (max-width: 600px) {
+      table { min-width: 400px; }
+      th, td { padding: 6px; font-size: 0.9em; }
+      .header-bar h1 { font-size: 1.2em; }
+      .back-link { font-size: 0.9em; padding: 8px 12px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header-bar">
+    <h1>Scoreboard</h1>
+    <a class="back-link" href="voting.html">← Back to Voting</a>
+  </div>
+  <input type="text" id="matchSearch" placeholder="Search matches by name..." />
+  <div class="table-container">
+    <table id="scoreboardTable">
+      <tr><td>Loading scoreboard...</td></tr>
+    </table>
+  </div>
+  <script>
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+
+    Promise.all([
+      fetch('/matches').then(res => res.json()),
+      fetch('/voters').then(res => res.json()),
+      fetch('/results').then(res => res.json())
+    ]).then(([allMatches, votersData, resultsData]) => {
+
+      // Filter to past/today matches
+      let matchesToShow = allMatches.filter(match => {
+        const matchDate = new Date(match.date).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+        return matchDate <= today;
+      });
+
+      // Sort: today's matches first, then rest
+      matchesToShow.sort((a, b) => {
+        const aIsToday = new Date(a.date).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) === today;
+        const bIsToday = new Date(b.date).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }) === today;
+        if (aIsToday && !bIsToday) return -1;
+        if (!aIsToday && bIsToday) return 1;
+        return 0;
+      });
+
+      // Build header
+      let header = `<tr><th class="fixed-col">Player Name</th>`;
+      matchesToShow.forEach(match => {
+        header += `<th class="match-col" data-match-title="${match.title}">${match.title}</th>`;
+      });
+      header += `<th class="fixed-col-end">Current Standing</th></tr>`;
+
+      // Merge results into matches
+      matchesToShow.forEach(match => {
+        const resObj = resultsData.results.find(r => r.matchName === match.title);
+        if (resObj) {
+          match.winner = resObj.winner;
+          match.declaredMotm = resObj.declaredMotm;
+          match.cancelled = !!resObj.cancelled;
+        }
+        const matchDateTime = new Date(`${match.date}T${match.time}:00`);
+        match.startTime = matchDateTime.getTime();
+        match.freezeTime = match.startTime - 60000;
+      });
+
+      const perMatchContri = votersData.votersPool[0].perMatchContri;
+      const perMotmContri = votersData.votersPool[0].perMotmContri;
+
+      // Sort voters by standing descending
+      votersData.votersPool.sort((a, b) => b.currentStanding - a.currentStanding);
+
+      let body = "";
+      votersData.votersPool.forEach(voter => {
+        let row = `<tr><td class="fixed-col">${voter.name}</td>`;
+
+        matchesToShow.forEach(match => {
+          let cellContent = "";
+
+          if (match.cancelled) {
+            cellContent = `<div class="info-line">Match Cancelled</div>`;
+            row += `<td>${cellContent}</td>`;
+            return;
+          }
+
+          if (Date.now() < match.startTime) {
+            row += `<td><div class="info-line">Voting info hidden until match starts</div></td>`;
+            return;
+          }
+
+          if (!match.winner || !match.declaredMotm) {
+            const vote = voter.votingInfo.find(v => v.matchName === match.title);
+            if (vote) {
+              const motmAll = vote.motm
+                ? vote.motm.teamA.concat(vote.motm.teamB).filter(x => x !== '').join(", ")
+                : "No Vote";
+              cellContent = `<div class="info-line">Team: ${vote.votedTeam}</div>
+                             <div class="info-line">${motmAll}</div>`;
+            } else {
+              cellContent = `<div class="red info-line">No Vote</div>`;
+            }
+            row += `<td>${cellContent}</td>`;
+            return;
+          }
+
+          const userVote = voter.votingInfo.find(v => v.matchName === match.title);
+
+          // Compute bonusTeam
+          const allVotes = votersData.votersPool.map(v => {
+            const vvote = v.votingInfo.find(x => x.matchName === match.title);
+            return { votedTeam: vvote ? vvote.votedTeam : null };
+          });
+          const countWinning = allVotes.filter(x => x.votedTeam === match.winner).length;
+          const countLosing = allVotes.filter(x => x.votedTeam !== match.winner).length;
+          const bonusTeam = (countWinning > 0) ? (countLosing * perMatchContri / countWinning) : 0;
+
+          // Compute MOTM bonus
+          const primaryMotmWinners = votersData.votersPool.filter(v => {
+            const vvote = v.votingInfo.find(x => x.matchName === match.title);
+            if (!vvote || !vvote.motm) return false;
+            const combined = [...(vvote.motm.teamA || []), ...(vvote.motm.teamB || [])].filter(sel => sel !== '');
+            return combined.includes(match.declaredMotm);
+          });
+          const useFallback = (primaryMotmWinners.length === 0);
+
+          let motmWinners = [];
+          if (!useFallback) {
+            motmWinners = primaryMotmWinners;
+          } else {
+            motmWinners = votersData.votersPool.filter(v => {
+              const vvote = v.votingInfo.find(x => x.matchName === match.title);
+              return vvote && vvote.votedTeam === match.winner;
+            });
+          }
+          const countCorrectMotm = motmWinners.length;
+          const totalVoters = votersData.votersPool.length;
+          const countWrongMotm = totalVoters - countCorrectMotm;
+          const bonusMotm = (countCorrectMotm > 0) ? (countWrongMotm * perMotmContri / countCorrectMotm) : 0;
+
+          if (!userVote) {
+            cellContent = `<div class="red info-line">Team: No Vote (Loss: -${perMatchContri})</div>
+                           <div class="red info-line">No Vote (Loss: -${perMotmContri})</div>`;
+          } else {
+            let teamLine = "";
+            if (userVote.votedTeam === match.winner) {
+              teamLine = `<div class="green info-line">Team: ${userVote.votedTeam} (Win: +${bonusTeam.toFixed(2)})</div>`;
+            } else {
+              teamLine = `<div class="red info-line">Team: ${userVote.votedTeam} (Loss: -${perMatchContri})</div>`;
+            }
+
+            let motmLine = "";
+            const combined = (userVote.motm)
+              ? [...(userVote.motm.teamA || []), ...(userVote.motm.teamB || [])].filter(x => x !== '')
+              : [];
+            let userIsMotmWinner = false;
+            if (!useFallback) {
+              userIsMotmWinner = combined.includes(match.declaredMotm);
+            } else {
+              userIsMotmWinner = (userVote.votedTeam === match.winner);
+            }
+            if (userIsMotmWinner) {
+              motmLine = `<div class="green info-line">${combined.join(", ") || "No Vote"} (Win: +${bonusMotm.toFixed(2)})</div>`;
+            } else {
+              motmLine = `<div class="red info-line">${combined.join(", ") || "No Vote"} (Loss: -${perMotmContri})</div>`;
+            }
+            cellContent = teamLine + motmLine;
+          }
+
+          const matchDate = new Date(match.date).toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+          if (matchDate === today) {
+            cellContent = `<div class="blue-highlight">${cellContent}</div>`;
+          }
+          row += `<td>${cellContent}</td>`;
+        });
+
+        let csClass = "";
+        if (voter.currentStanding > voter.startingContribution) csClass = "green";
+        else if (voter.currentStanding < voter.startingContribution) csClass = "red";
+        else csClass = "yellow";
+
+        row += `<td class="fixed-col-end ${csClass}">${Math.floor(voter.currentStanding)}</td></tr>`;
+        body += row;
+      });
+
+      document.getElementById('scoreboardTable').innerHTML = header + body;
+
+      // Search filter
+      document.getElementById('matchSearch').addEventListener('keyup', function() {
+        const filterText = this.value.toLowerCase();
+        const headerCells = document.querySelectorAll('#scoreboardTable th.match-col');
+        headerCells.forEach((th, index) => {
+          const matchTitle = th.getAttribute('data-match-title').toLowerCase();
+          const showColumn = matchTitle.indexOf(filterText) > -1;
+          th.style.display = showColumn ? "" : "none";
+          document.querySelectorAll('#scoreboardTable tr').forEach(row => {
+            const cell = row.querySelectorAll('td')[index + 1];
+            if (cell) cell.style.display = showColumn ? "" : "none";
+          });
+        });
+      });
+
+    }).catch(err => {
+      document.getElementById('scoreboardTable').innerHTML = `<tr><td>Error loading scoreboard: ${err.message}</td></tr>`;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# fly.toml - Fly.io app configuration
+# Replace "cricket-voting-app" below with your actual app name after running: fly launch
+
+app = "cricket-voting-app"
+primary_region = "sin"  # Singapore — closest to India. Change to "bom" if available, else "sin"
+
+[build]
+
+[env]
+  PORT = "3000"
+  DATA_DIR = "/data"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1
+
+# Persistent volume — this is what keeps your JSON files alive across restarts
+[[mounts]]
+  source = "cricket_data"
+  destination = "/data"
