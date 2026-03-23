@@ -4,12 +4,8 @@ services:
     env: node
     buildCommand: npm install
     startCommand: node server.js
-    disk:
-      name: cricket-data
-      mountPath: /data
-      sizeGB: 1
     envVars:
-      - key: DATA_DIR
-        value: /data
+      - key: MONGO_URI
+        sync: false
       - key: NODE_ENV
         value: production
