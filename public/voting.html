@@ -4,12 +4,16 @@
   <meta charset="UTF-8">
   <title>🏏 Cricket Match Voting App</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Include Select2 CSS/JS for searchable dropdowns -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+  <!-- Include Chart.js for vote distribution charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Include Chart.js DataLabels plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
   <style>
+    /* Basic styling */
     body {
       background: #121212;
       color: #fff;
@@ -32,9 +36,12 @@
     .cancel-btn::after {
       content: "";
       position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background-image: radial-gradient(circle, rgba(0,170,255,0.3) 20%, transparent 21%),
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: 
+        radial-gradient(circle, rgba(0,170,255,0.3) 20%, transparent 21%),
         radial-gradient(circle, rgba(0,170,255,0.3) 20%, transparent 21%),
         radial-gradient(circle, rgba(0,170,255,0.3) 20%, transparent 21%);
       background-size: 8px 8px;
@@ -44,11 +51,20 @@
       transition: opacity 0.3s ease-in-out;
       animation: subtleDrip 3s linear infinite;
     }
-    .cancel-btn:hover::after, .cancel-btn:active::after { opacity: 1; }
+    .cancel-btn:hover::after,
+    .cancel-btn:active::after {
+      opacity: 1;
+    }
     @keyframes subtleDrip {
-      0% { background-position: 0 0, 4px 4px, 2px 6px; }
-      50% { background-position: 0 2px, 4px 6px, 2px 8px; }
-      100% { background-position: 0 0, 4px 4px, 2px 6px; }
+      0% {
+        background-position: 0 0, 4px 4px, 2px 6px;
+      }
+      50% {
+        background-position: 0 2px, 4px 6px, 2px 8px;
+      }
+      100% {
+        background-position: 0 0, 4px 4px, 2px 6px;
+      }
     }
     .header-bar {
       display: flex;
@@ -61,11 +77,28 @@
       background: linear-gradient(90deg, #ff5722, #ffc107);
       border-radius: 12px;
     }
-    .header-info { font-size: 0.9em; }
-    .header-info a { color: #ffc107; text-decoration: none; margin-left: 10px; }
-    .select2-results { color: #1a1a1a !important; }
-    .date-picker { margin-bottom: 20px; font-size: 1.1em; }
-    .matches-container { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
+    .header-info {
+      font-size: 0.9em;
+    }
+    .header-info a {
+      color: #ffc107;
+      text-decoration: none;
+      margin-left: 10px;
+    }
+    .select2-results {
+      color: #1a1a1a !important;
+    }
+    /* New Date Picker styling */
+    .date-picker {
+      margin-bottom: 20px;
+      font-size: 1.1em;
+    }
+    .matches-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
     .card {
       background: #1f1f1f;
       border: 2px solid #ffc107;
@@ -75,13 +108,17 @@
       cursor: pointer;
       padding: 15px;
     }
-    .card:hover { transform: translateY(-5px); }
+    .card:hover {
+      transform: translateY(-5px);
+    }
     .modal {
       display: none;
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.8);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
       overflow: auto;
     }
     .modal-content {
@@ -93,7 +130,8 @@
     }
     .close {
       position: absolute;
-      top: 15px; right: 20px;
+      top: 15px;
+      right: 20px;
       font-size: 25px;
       cursor: pointer;
       color: #ffc107;
@@ -108,12 +146,24 @@
       margin-top: 10px;
       cursor: pointer;
     }
-    .vote-btn.selected { background: #4CAF50; }
-    .dropdown { width: 100% !important; margin-top: 10px; }
-    .motm-label { margin-top: 10px; font-weight: bold; }
+    .vote-btn.selected {
+      background: #4CAF50;
+    }
+    .dropdown {
+      width: 100% !important;
+      margin-top: 10px;
+    }
+    .motm-label {
+      margin-top: 10px;
+      font-weight: bold;
+    }
     @media (max-width: 600px) {
-      .card { width: 100%; }
-      .modal-content { width: 95%; }
+      .card {
+        width: 100%;
+      }
+      .modal-content {
+        width: 95%;
+      }
     }
   </style>
 </head>
@@ -125,60 +175,628 @@
       <a href="scoreboard.html">View Scoreboard</a>
     </div>
   </div>
+  
+  <!-- New Date Picker: Users can select a date to filter matches -->
   <div class="date-picker">
     <label for="matchDate">Select Date: </label>
     <input type="date" id="matchDate" onchange="renderMatches()">
   </div>
+  
   <div class="matches-container" id="matchesContainer"></div>
+  
   <div class="modal" id="matchModal">
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
       <div id="modalContent"></div>
     </div>
   </div>
+  
   <script>
+    // Register the DataLabels plugin so labels are always visible
     Chart.register(ChartDataLabels);
-
+    
+    // Redirect to login if no user is stored
     if (!localStorage.getItem('user')) {
       window.location.href = 'login.html';
     }
     const user = JSON.parse(localStorage.getItem('user'));
     document.getElementById('userEmail').innerText = "Logged in as: " + user.email;
-
-    let matches = [];
+    
+    // Sample match data – this may later be replaced by a database fetch
+    const matches = [
+    {
+        "title": "IPL 1 - KKR vs RCB",
+        "date": "2025-03-22",
+        "time": "19:00",
+        "teams": {
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"],
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"]
+        }
+    }, {
+        "title": "IPL 2 - SRH vs RR",
+        "date": "2025-03-23",
+        "time": "15:00",
+        "teams": {
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"],
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"]
+        }
+    }, {
+        "title": "IPL 3 - MI vs CSK",
+        "date": "2025-03-23",
+        "time": "19:00",
+        "teams": {
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"],
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"]
+        }
+    }, {
+        "title": "IPL 4 - DC vs LSG",
+        "date": "2025-03-24",
+        "time": "19:00",
+        "teams": {
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"],
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"]
+        }
+    }, {
+        "title": "IPL 5 - GT vs PBKS",
+        "date": "2025-03-25",
+        "time": "19:00",
+        "teams": {
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"],
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"]
+        }
+    }, {
+        "title": "IPL 6 - RR vs KKR",
+        "date": "2025-03-26",
+        "time": "19:00",
+        "teams": {
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"],
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"]
+        }
+    }, {
+        "title": "IPL 7 - SRH vs LSG",
+        "date": "2025-03-27",
+        "time": "19:00",
+        "teams": {
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"],
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"]
+        }
+    }, {
+        "title": "IPL 8 - RCB vs CSK",
+        "date": "2025-03-28",
+        "time": "19:00",
+        "teams": {
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"],
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"]
+        }
+    }, {
+        "title": "IPL 9 - GT vs MI",
+        "date": "2025-03-29",
+        "time": "19:00",
+        "teams": {
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"],
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"]
+        }
+    }, {
+        "title": "IPL 10 - DC vs SRH",
+        "date": "2025-03-30",
+        "time": "15:00",
+        "teams": {
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"],
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"]
+        }
+    }, {
+        "title": "IPL 11 - RR vs CSK",
+        "date": "2025-03-30",
+        "time": "19:00",
+        "teams": {
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"],
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"]
+        }
+    }, {
+        "title": "IPL 12 - MI vs KKR",
+        "date": "2025-03-31",
+        "time": "19:00",
+        "teams": {
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"],
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"]
+        }
+    }, {
+        "title": "IPL 13 - LSG vs PBKS",
+        "date": "2025-04-01",
+        "time": "19:00",
+        "teams": {
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"],
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"]
+        }
+    }, {
+        "title": "IPL 14 - RCB vs GT",
+        "date": "2025-04-02",
+        "time": "19:00",
+        "teams": {
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"],
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"]
+        }
+    }, {
+        "title": "IPL 15 - KKR vs SRH",
+        "date": "2025-04-03",
+        "time": "19:00",
+        "teams": {
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"],
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"]
+        }
+    }, {
+        "title": "IPL 16 - LSG vs MI",
+        "date": "2025-04-04",
+        "time": "19:00",
+        "teams": {
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"],
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"]
+        }
+    }, {
+        "title": "IPL 17 - CSK vs DC",
+        "date": "2025-04-05",
+        "time": "15:00",
+        "teams": {
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"],
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"]
+        }
+    }, {
+        "title": "IPL 18 - PBKS vs RR",
+        "date": "2025-04-05",
+        "time": "19:00",
+        "teams": {
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"],
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"]
+        }
+    }, {
+        "title": "IPL 19 - KKR vs LSG",
+        "date": "2025-04-06",
+        "time": "15:00",
+        "teams": {
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"],
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"]
+        }
+    }, {
+        "title": "IPL 20 - SRH vs GT",
+        "date": "2025-04-06",
+        "time": "19:00",
+        "teams": {
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"],
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"]
+        }
+    }, {
+        "title": "IPL 21 - MI vs RCB",
+        "date": "2025-04-07",
+        "time": "19:00",
+        "teams": {
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"],
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"]
+        }
+    }, {
+        "title": "IPL 22 - PBKS vs CSK",
+        "date": "2025-04-08",
+        "time": "19:00",
+        "teams": {
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"],
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"]
+        }
+    }, {
+        "title": "IPL 23 - GT vs RR",
+        "date": "2025-04-09",
+        "time": "19:00",
+        "teams": {
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"],
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"]
+        }
+    }, {
+        "title": "IPL 24 - RCB vs DC",
+        "date": "2025-04-10",
+        "time": "19:00",
+        "teams": {
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"],
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"]
+        }
+    }, {
+        "title": "IPL 25 - CSK vs KKR",
+        "date": "2025-04-11",
+        "time": "19:00",
+        "teams": {
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"],
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"]
+        }
+    }, {
+        "title": "IPL 26 - LSG vs GT",
+        "date": "2025-04-12",
+        "time": "15:00",
+        "teams": {
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"],
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"]
+        }
+    }, {
+        "title": "IPL 27 - SRH vs PBKS",
+        "date": "2025-04-12",
+        "time": "19:00",
+        "teams": {
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"],
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"]
+        }
+    }, {
+        "title": "IPL 28 - RR vs RCB",
+        "date": "2025-04-13",
+        "time": "15:00",
+        "teams": {
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"],
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"]
+        }
+    }, {
+        "title": "IPL 29 - DC vs MI",
+        "date": "2025-04-13",
+        "time": "19:00",
+        "teams": {
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"],
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"]
+        }
+    }, {
+        "title": "IPL 30 - LSG vs CSK",
+        "date": "2025-04-14",
+        "time": "19:00",
+        "teams": {
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"],
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"]
+        }
+    }, {
+        "title": "IPL 31 - PBKS vs KKR",
+        "date": "2025-04-15",
+        "time": "19:00",
+        "teams": {
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"],
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"]
+        }
+    }, {
+        "title": "IPL 32 - DC vs RR",
+        "date": "2025-04-16",
+        "time": "19:00",
+        "teams": {
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"],
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"]
+        }
+    }, {
+        "title": "IPL 33 - MI vs SRH",
+        "date": "2025-04-17",
+        "time": "19:00",
+        "teams": {
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"],
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"]
+        }
+    }, {
+        "title": "IPL 34 - RR vs PBKS",
+        "date": "2025-04-18",
+        "time": "19:00",
+        "teams": {
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"],
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"]
+        }
+    }, {
+        "title": "IPL 35 - GT vs DC",
+        "date": "2025-04-19",
+        "time": "15:00",
+        "teams": {
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"],
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"]
+        }
+    }, {
+        "title": "IPL 36 - RR vs LSG",
+        "date": "2025-04-19",
+        "time": "19:00",
+        "teams": {
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"],
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"]
+        }
+    }, {
+        "title": "IPL 37 - PBKS vs RCB",
+        "date": "2025-04-20",
+        "time": "15:00",
+        "teams": {
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"],
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"]
+        }
+    }, {
+        "title": "IPL 38 - MI vs CSK",
+        "date": "2025-04-20",
+        "time": "19:00",
+        "teams": {
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"],
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"]
+        }
+    }, {
+        "title": "IPL 39 - KKR vs GT",
+        "date": "2025-04-21",
+        "time": "19:00",
+        "teams": {
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"],
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"]
+        }
+    }, {
+        "title": "IPL 40 - LSG vs DC",
+        "date": "2025-04-22",
+        "time": "19:00",
+        "teams": {
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"],
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"]
+        }
+    }, {
+        "title": "IPL 41 - SRH vs MI",
+        "date": "2025-04-23",
+        "time": "19:00",
+        "teams": {
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"],
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"]
+        }
+    }, {
+        "title": "IPL 42 - RCB vs RR",
+        "date": "2025-04-24",
+        "time": "19:00",
+        "teams": {
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"],
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"]
+        }
+    }, {
+        "title": "IPL 43 - CSK vs SRH",
+        "date": "2025-04-25",
+        "time": "19:00",
+        "teams": {
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"],
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"]
+        }
+    }, {
+        "title": "IPL 44 - KKR vs PBKS",
+        "date": "2025-04-26",
+        "time": "19:00",
+        "teams": {
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"],
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"]
+        }
+    }, {
+        "title": "IPL 45 - MI vs LSG",
+        "date": "2025-04-27",
+        "time": "15:00",
+        "teams": {
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"],
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"]
+        }
+    }, {
+        "title": "IPL 46 - DC vs RCB",
+        "date": "2025-04-27",
+        "time": "19:00",
+        "teams": {
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"],
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"]
+        }
+    }, {
+        "title": "IPL 47 - RR vs GT",
+        "date": "2025-04-28",
+        "time": "19:00",
+        "teams": {
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"],
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"]
+        }
+    }, {
+        "title": "IPL 48 - DC vs KKR",
+        "date": "2025-04-29",
+        "time": "19:00",
+        "teams": {
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"],
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"]
+        }
+    }, {
+        "title": "IPL 49 - CSK vs PBKS",
+        "date": "2025-04-30",
+        "time": "19:00",
+        "teams": {
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"],
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"]
+        }
+    }, {
+        "title": "IPL 50 - RR vs MI",
+        "date": "2025-05-01",
+        "time": "19:00",
+        "teams": {
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"],
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"]
+        }
+    }, {
+        "title": "IPL 51 - GT vs SRH",
+        "date": "2025-05-02",
+        "time": "19:00",
+        "teams": {
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"],
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"]
+        }
+    }, {
+        "title": "IPL 52 - RR vs CSK",
+        "date": "2025-05-03",
+        "time": "19:00",
+        "teams": {
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"],
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"]
+        }
+    }, {
+        "title": "IPL 53 - KKR vs RR",
+        "date": "2025-05-04",
+        "time": "15:00",
+        "teams": {
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"],
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"]
+        }
+    }, {
+        "title": "IPL 54 - PBKS vs CSK",
+        "date": "2025-05-04",
+        "time": "19:00",
+        "teams": {
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"],
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"]
+        }
+    }, {
+        "title": "IPL 55 - SRH vs DC",
+        "date": "2025-05-05",
+        "time": "19:00",
+        "teams": {
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"],
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"]
+        }
+    }, {
+        "title": "IPL 56 - MI vs GT",
+        "date": "2025-05-06",
+        "time": "19:00",
+        "teams": {
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"],
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"]
+        }
+    }, {
+        "title": "IPL 57 - KKR vs CSK",
+        "date": "2025-05-07",
+        "time": "19:00",
+        "teams": {
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"],
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"]
+        }
+    }, {
+        "title": "IPL 58 - PBKS vs DC",
+        "date": "2025-05-08",
+        "time": "19:00",
+        "teams": {
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"],
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"]
+        }
+    }, {
+        "title": "IPL 59 - LSG vs RCB",
+        "date": "2025-05-09",
+        "time": "19:00",
+        "teams": {
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"],
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"]
+        }
+    }, {
+        "title": "IPL 60 - SRH vs KKR",
+        "date": "2025-05-10",
+        "time": "19:00",
+        "teams": {
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"],
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"]
+        }
+    }, {
+        "title": "IPL 61 - PBKS vs MI",
+        "date": "2025-05-11",
+        "time": "15:00",
+        "teams": {
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"],
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"]
+        }
+    }, {
+        "title": "IPL 62 - DC vs GT",
+        "date": "2025-05-11",
+        "time": "19:00",
+        "teams": {
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"],
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"]
+        }
+    }, {
+        "title": "IPL 63 - CSK vs RR",
+        "date": "2025-05-12",
+        "time": "19:00",
+        "teams": {
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"],
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"]
+        }
+    }, {
+        "title": "IPL 64 - RCB vs SRH",
+        "date": "2025-05-13",
+        "time": "19:00",
+        "teams": {
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"],
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"]
+        }
+    }, {
+        "title": "IPL 65 - GT vs LSG",
+        "date": "2025-05-14",
+        "time": "19:00",
+        "teams": {
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"],
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"]
+        }
+    }, {
+        "title": "IPL 66 - MI vs DC",
+        "date": "2025-05-15",
+        "time": "19:00",
+        "teams": {
+            "MI": ["Arjun Tendulkar", "Ashwani Kumar", "Bevon Jacobs", "Corbin Bosch", "Deepak Chahar", "Hardik Pandya", "Jasprit Bumrah", "Karn Sharma", "Mitchell Santner", "Mujeeb-ur-Rahman", "Naman Dhir", "Raj Angad Bawa", "Reece Topley", "Robin Minz", "Rohit Sharma", "Ryan Rickelton", "Shrijith Krishnan", "Suryakumar Yadav", "Tilak Verma", "Trent Boult", "Venkat Satyanarayana Raju", "Vignesh Puthhur", "Will Jacks"],
+            "DC": ["Abhishek Porel", "Ajay Mandal", "Ashutosh Sharma", "Axar Patel", "Darshan Nalkande", "Donovan Ferreira", "Dushmanta Chameera", "Faf du Plessis", "Jake Fraser-McGurk", "Karun Nair", "KL Rahul", "Kuldeep Yadav", "Madhav Tiwari", "Manvanth Kumar", "Mitchell Starc", "Mohit Sharma", "Mukesh Kumar", "Sameer Rizvi", "T Natrajan", "Tripurana Vijay", "Tristian Stubbs", "Vipraj Nigam"]
+        }
+    }, {
+        "title": "IPL 67 - RR vs PBKS",
+        "date": "2025-05-16",
+        "time": "19:00",
+        "teams": {
+            "RR": ["Akash Madhwal", "Ashok Sharma", "Dhruv Jurel", "Fazal Farooqi", "Jofra Archer", "Kumar Kartikeya Singh", "Kunal Rathore", "Kwena Maphaka", "Maheesh Theekshana", "Nitish Rana", "Riyan Parag", "Sandeep Sharma", "Sanju Samson", "Shimron Hetmyer", "Shubham Dubey", "Tushar Deshpande", "Vaibhav Suryavanshi", "Wainindu Hasaranga", "Yashasvi Jaiswal", "Yudhvir Charak"],
+            "PBKS": ["Aaron Hardie", "Arshdeep Singh", "Azmatullah Omarzai", "Glenn Maxwell", "Harnoor Pannu", "Harpreet Brar", "Josh Inglis", "Kuldeep Sen", "Lockie Ferguson", "Marco Jansen", "Marcus Stoinis", "Musheer Khan", "Nehal Wadhera", "Prabhsimran Singh", "Pravin Dubey", "Priyansh Arya", "Pyla Avinash", "Shashank Singh", "Shreyas Iyer", "Suryansh Shedge", "Vijaykumar Vyshak", "Vishnu Vinod", "Xavier Bartlett", "Yash Thakur", "Yuzvendra Chahal"]
+        }
+    }, {
+        "title": "IPL 68 - RCB vs KKR",
+        "date": "2025-05-17",
+        "time": "19:00",
+        "teams": {
+            "RCB": ["Abhinandan Singh", "Bhuvneshwar Kumar", "Devdutt Padikkal", "Jacob Bethel", "Jitesh Sharma", "Josh Hazlewood", "Krunal Pandya", "Liam Livingstone", "Lungi Ngidi", "Manoj Bhandage", "Mohit Rathee", "Nuwan Thushara", "Phil Salt", "Rajat Patidar", "Rasikh Dar", "Romario Shepherd", "Suyash Sharma", "Swapnil Singh", "Swastik Chhikara", "Tim David", "Virat Kohli", "Yash Dayal"],
+            "KKR": ["Chetan Sakariya", "Ajinkya Rahane", "Andre Russell", "Angkrish Raghuvanshi", "Anrich Nortje", "Anukul Roy", "Harshit Rana", "Luvnith Sisodia", "Manish Pandey", "Mayank Markande", "Moeen Ali", "Quinton de Kock", "Rahmanullah Gurbaz", "Ramandeep Singh", "Rinku Singh", "Rovman Powell", "Spencer Johnson", "Sunil Narine", "Umran Malik", "Vaibhav Arora", "Varun Chakaravarthy", "Venkatesh Iyer"]
+        }
+    }, {
+        "title": "IPL 69 - GT vs CSK",
+        "date": "2025-05-18",
+        "time": "15:00",
+        "teams": {
+            "GT": ["Anuj Rawat", "B. Sai Sudharshan", "Gerald Coetzee", "Glenn Phillips", "Gurnoor Singh Brar", "Ishant Sharma", "Jayant Yadav", "Jos Buttler", "Kagiso Rabada", "Kareem Janat", "Kulwant Khejroliya", "Kumar Kushagra", "Mahipal Lomror", "Manav Suthar", "Mohammed Siraj", "Mohmmad Arshad Khan", "Nishant Sindhu", "Prasidh Krishna", "R. Sai Kishore", "Rahul Tewatia", "Rashid Khan", "Shahrukh Khan", "Sherfane Rutherford", "Shubman Gill", "Washington Sundar"],
+            "CSK": ["Andre Siddarth", "Anshul Kamboj", "Deepak Hooda", "Devon Conway", "Gurjanpreet Singh", "Jamie Overton", "Kamlesh Nagarkoti", "Matheesha Pathirana", "MS Dhoni", "Mukesh Choudhary", "Nathan Ellis", "Noor Ahmad", "Rachin Ravindra", "Rahul Tripathi", "Ramakrishnan Ghosh", "Ravichandran Ashwin", "Ravindra Jadeja", "Ruturaj Gaikwad", "Sam Curran", "Shaik Rashid", "Shivam Dube", "Shreyas Gopal", "Syed Khaleel Ahmed", "Vansh Bedi", "Vijay Shankar"]
+        }
+    }, {
+        "title": "IPL 70 - LSG vs SRH",
+        "date": "2025-05-18",
+        "time": "19:00",
+        "teams": {
+            "LSG": ["Shardul Thakur", "Abdul Samad", "Aiden Markram", "Akash Deep", "Akash Singh", "Arshin Kulkarni", "Aryan Juyal", "Avesh Khan", "Ayush Badoni", "David Miller", "Digvesh Singh", "Himmat Singh", "M Siddharth", "Matthew Breetzke", "Mayank Yadav", "Mitchell Marsh", "Mohsin Khan", "Nicholas Pooran", "Prince Yadav", "Rajvardhan Hangargekar", "Ravi Bisnoi", "Rishabh Pant", "Shahbaz Ahmed", "Shamar Joseph", "Yuvraj Chaudhary"],
+            "SRH": ["Abhinav Manohar", "Abhishek Sharma", "Adam Zampa", "Aniket Verma", "Atharva Taide", "Eshan Malinga", "Harshal Patel", "Heinrich Klassen", "Ishan Kishan", "Jaydev Unadkat", "Kamindu Mendis", "Mohammad Shami", "Nitish Reddy", "Pat Cummins", "Rahul Chahar", "Sachin Baby", "Simarjeet Singh", "Travis Head", "Wiaan Mulder", "Zeeshan Ansari"]
+        }
+    }
+];
+    
+    // Set default date in date picker to today's date in 'en-CA' format (Asia/Kolkata)
+    const dateInput = document.getElementById('matchDate');
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+    dateInput.value = today;
+    
     let selectedTeam = null;
     const matchesContainer = document.getElementById('matchesContainer');
     const modal = document.getElementById('matchModal');
     const modalContent = document.getElementById('modalContent');
-
-    // Set default date to today (Asia/Kolkata)
-    const dateInput = document.getElementById('matchDate');
-    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
-    dateInput.value = today;
-
-    // Load matches from server
-    fetch('/matches')
-      .then(res => res.json())
-      .then(data => {
-        matches = data;
-        renderMatches();
-      })
-      .catch(err => {
-        matchesContainer.innerHTML = '<p>Error loading matches.</p>';
-      });
-
+    
     function renderMatches() {
+      // Use the selected date from the date picker
       const selectedDate = document.getElementById('matchDate').value;
+      
+      // Filter matches that match the selected date
       const filtered = matches.filter(m => m.date === selectedDate);
+      
       if (!filtered.length) {
         matchesContainer.innerHTML = `<p>No matches scheduled for ${selectedDate}.</p>`;
         return;
       }
+      
+      // Fetch results data from server
       fetch('/results')
         .then(res => res.json())
         .then(resultsData => {
           const resultsMap = {};
-          resultsData.results.forEach(r => { resultsMap[r.matchName] = r; });
+          resultsData.results.forEach(r => {
+            resultsMap[r.matchName] = r;
+          });
           matchesContainer.innerHTML = filtered.map(match => {
             let extra = "";
             if (resultsMap[match.title]) {
@@ -194,15 +812,16 @@
           }).join('');
         })
         .catch(err => {
-          matchesContainer.innerHTML = filtered.map(match =>
-            `<div class="card" onclick="openModal('${match.title}')">
-              <h3>${match.title}</h3>
-              <p>Date: ${match.date} | Time: ${match.time}</p>
-            </div>`
-          ).join('');
+          console.error("Error fetching results: ", err);
+          matchesContainer.innerHTML = filtered.map(match => {
+            return `<div class="card" onclick="openModal('${match.title}')">
+                      <h3>${match.title}</h3>
+                      <p>Date: ${match.date} | Time: ${match.time}</p>
+                    </div>`;
+          }).join('');
         });
     }
-
+    
     function openModal(title) {
       const match = matches.find(m => m.title === title);
       const teamNames = Object.keys(match.teams);
@@ -213,9 +832,10 @@
       const matchDateTime = new Date(`${match.date}T${match.time}:00`);
       const freezeTime = matchDateTime.getTime() - 60000;
       const isVotingClosed = Date.now() >= freezeTime;
-
+      
       if (!isVotingClosed) {
-        modalContent.innerHTML =
+        // Voting UI with one MOTM dropdown for each team.
+        modalContent.innerHTML = 
           `<h2>${match.title}</h2>
           <p>Date: ${match.date} | Time: ${match.time}</p>
           <button class="vote-btn" id="voteTeamA" onclick="castVote('A')">Vote for ${teamA}</button>
@@ -233,17 +853,19 @@
           </select>
           <button class="submit-btn" onclick="submitVotes('${match.title}')">Submit Vote</button>`;
       } else {
+        // Voting Closed UI with vote distribution charts.
         if (user.email === "jeetandra@gmail.com" || user.email === "jagrit@gmail.com") {
-          modalContent.innerHTML =
+          // Admin view: include declaration controls and charts.
+          modalContent.innerHTML = 
             `<h2>${match.title} - Voting Closed</h2>
             <p>Date: ${match.date} | Time: ${match.time}</p>
             <h3>Declare Winner</h3>
-            <div style="display: flex; gap:10px;">
+            <div style="display: flex; gap:10px;"> 
               <button class="declare-btn" onclick="declareWinner('${match.title}', '${teamA}')">${teamA}</button>
               <button class="declare-btn" onclick="declareWinner('${match.title}', '${teamB}')">${teamB}</button>
             </div>
             <h3>Declare Man of the Match</h3>
-            <div style="display: flex; gap:10px;">
+            <div style="display: flex; gap:10px;"> 
               <select class="dropdown motmSelect">
                 <option value="">Select MOTM from ${teamA}</option>
                 ${teamAPlayers.map(p => `<option value="${p}">${p}</option>`).join('')}
@@ -256,23 +878,35 @@
             <button class="declare-motm-btn" onclick="declareMotm('${match.title}')">Declare MOTM</button>
             <button class="declare-btn" onclick="finalizeMatch('${match.title}')">Finalize Match</button>
             <button class="cancel-btn" onclick="cancelMatch('${match.title}')">Match Cancelled</button>
+            <!-- Vote Distribution Charts -->
             <div id="voteStats">
               <h3>Vote Distribution</h3>
-              <div><canvas id="teamVotesChart" style="width:200px; height:200px;"></canvas></div>
-              <div style="margin-top:20px;"><canvas id="motmVotesChart"></canvas></div>
+              <div>
+                <canvas id="teamVotesChart" style="width:200px; height:200px;"></canvas>
+              </div>
+              <div style="margin-top:20px;">
+                <canvas id="motmVotesChart"></canvas>
+              </div>
             </div>`;
         } else {
-          modalContent.innerHTML =
+          // Non-admin view: show vote results and charts.
+          modalContent.innerHTML = 
             `<h2>${match.title} - Voting Closed</h2>
             <p>You are not authorized to declare the winner or MOTM for this match.</p>
+            <!-- Vote Distribution Charts -->
             <div id="voteStats">
               <h3>Vote Distribution</h3>
               <div style="display: flex; gap:20px;">
-                <div style="flex: 1;"><canvas id="teamVotesChart" style="width:200px; height:200px;"></canvas></div>
-                <div style="flex: 1;"><canvas id="motmVotesChart"></canvas></div>
+                <div style="flex: 1;">
+                  <canvas id="teamVotesChart" style="width:200px; height:200px;"></canvas>
+                </div>
+                <div style="flex: 1;">
+                  <canvas id="motmVotesChart"></canvas>
+                </div>
               </div>
             </div>`;
         }
+        // Fetch and render vote distribution charts for the match.
         fetchVoteStats(match.title);
       }
       setTimeout(() => {
@@ -281,7 +915,7 @@
       selectedTeam = null;
       modal.style.display = "block";
     }
-
+    
     function castVote(team) {
       document.getElementById('voteTeamA').classList.remove('selected');
       document.getElementById('voteTeamB').classList.remove('selected');
@@ -292,17 +926,30 @@
       }
       selectedTeam = team;
     }
-
+    
     function submitVotes(matchTitle) {
       const match = matches.find(m => m.title === matchTitle);
       const matchDateTime = new Date(`${match.date}T${match.time}:00`);
       const freezeTime = matchDateTime.getTime() - 60000;
-      if (Date.now() >= freezeTime) { alert("Voting is closed."); closeModal(); return; }
-      if (!selectedTeam) { alert("Please cast your vote."); return; }
+      if (Date.now() >= freezeTime) {
+        alert("Voting is closed.");
+        closeModal();
+        return;
+      }
+      if (!selectedTeam) {
+        alert("Please cast your vote.");
+        return;
+      }
+      
       const teamA_sel = $('.teamASelect').val();
       const teamB_sel = $('.teamBSelect').val();
       const motmSelections = [teamA_sel, teamB_sel].filter(val => val !== "");
-      if (motmSelections.length !== 1) { alert("Please select exactly one candidate for Man of the Match."); return; }
+      
+      if (motmSelections.length !== 1) {
+        alert("Please select exactly one candidate for Man of the Match.");
+        return;
+      }
+      
       const voteDetails = {
         matchDate: match.date,
         matchName: match.title,
@@ -312,102 +959,187 @@
           teamB: teamB_sel ? [teamB_sel] : [""]
         }
       };
+      
       if (confirm("Submit your vote?")) {
         fetch('/vote', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email: user.email, voteDetails })
-        }).then(res => res.json()).then(result => { alert(result.message); closeModal(); });
+        })
+        .then(res => res.json())
+        .then(result => {
+          alert(result.message);
+          closeModal();
+        });
       }
     }
-
+    
     function declareWinner(matchTitle, winnerTeam) {
       fetch('/declare-winner', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matchName: matchTitle, winner: winnerTeam })
-      }).then(res => res.json()).then(result => { alert(result.message); renderMatches(); closeModal(); });
+      })
+      .then(res => res.json())
+      .then(result => {
+        alert(result.message);
+        renderMatches();
+        closeModal();
+      });
     }
-
+    
     function declareMotm(matchTitle) {
-      const motmSelections = $('.motmSelect').map(function() { return $(this).val(); }).get().filter(val => val !== "");
-      if (motmSelections.length !== 1) { alert("Please select exactly one MOTM candidate."); return; }
+      const motmSelections = $('.motmSelect').map(function() {
+        return $(this).val();
+      }).get().filter(val => val !== "");
+      if (motmSelections.length !== 1) {
+        alert("Please select exactly one MOTM candidate.");
+        return;
+      }
+      const declaredMotm = motmSelections[0];
       fetch('/declare-motm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matchName: matchTitle, declaredMotm: motmSelections[0] })
-      }).then(res => res.json()).then(result => { alert(result.message); renderMatches(); closeModal(); });
+        body: JSON.stringify({ matchName: matchTitle, declaredMotm })
+      })
+      .then(res => res.json())
+      .then(result => {
+        alert(result.message);
+        renderMatches();
+        closeModal();
+      });
     }
-
+    
     function finalizeMatch(matchTitle) {
       fetch('/finalize-match', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matchName: matchTitle })
-      }).then(res => res.json()).then(result => { alert(result.message); renderMatches(); closeModal(); });
+      })
+      .then(res => res.json())
+      .then(result => {
+        alert(result.message);
+        renderMatches();
+        closeModal();
+      });
     }
-
+    
     function cancelMatch(matchTitle) {
       if (confirm("Are you sure you want to cancel this match? No financial updates will be applied.")) {
         fetch('/match-cancelled', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ matchName: matchTitle })
-        }).then(res => res.json()).then(result => { alert(result.message); renderMatches(); closeModal(); });
+        })
+        .then(res => res.json())
+        .then(result => {
+          alert(result.message);
+          renderMatches();
+          closeModal();
+        });
       }
     }
-
-    function closeModal() { modal.style.display = "none"; }
-
+    
+    function closeModal() {
+      modal.style.display = "none";
+    }
+    
+    // Helper functions to fetch and render vote distribution charts
     function fetchVoteStats(matchTitle) {
       fetch(`/vote-stats?matchName=${encodeURIComponent(matchTitle)}`)
         .then(res => res.json())
         .then(data => {
+          // data now contains teamVotes, motmVotes, and totalVoters
           renderTeamVotesChart(data.teamVotes, data.totalVoters);
           renderMotmVotesChart(data.motmVotes, data.totalVoters);
         })
         .catch(err => console.error("Error fetching vote stats: ", err));
     }
-
+    
     function renderTeamVotesChart(teamVotesData, totalVoters) {
       const ctx = document.getElementById('teamVotesChart').getContext('2d');
+      // Calculate the sum of votes from teamVotesData
       const votesArray = Object.values(teamVotesData);
       const sumVotes = votesArray.reduce((acc, val) => acc + val, 0);
       const noVote = totalVoters - sumVotes;
-      const labels = [...Object.keys(teamVotesData), "No Vote"];
-      const votes = [...Object.values(teamVotesData), noVote];
+      
+      // Prepare labels and data arrays
+      const labels = Object.keys(teamVotesData);
+      const votes = Object.values(teamVotesData);
+      labels.push("No Vote");
+      votes.push(noVote);
+      
       new Chart(ctx, {
         type: 'pie',
-        data: { labels, datasets: [{ data: votes, backgroundColor: ['#4CAF50', '#FF5722', '#9E9E9E'] }] },
+        data: {
+          labels: labels,
+          datasets: [{
+            data: votes,
+            backgroundColor: ['#4CAF50', '#FF5722', '#9E9E9E'] // Added color for "No Vote"
+          }]
+        },
         options: {
           responsive: true,
           plugins: {
-            legend: { position: 'bottom' },
-            datalabels: { display: true, formatter: (value) => value, color: '#fff' }
+            legend: {
+              position: 'bottom'
+            },
+            datalabels: {
+              display: true,
+              formatter: (value) => value,
+              color: '#fff'
+            }
           }
         }
       });
     }
-
+    
     function renderMotmVotesChart(motmVotesData, totalVoters) {
       const ctx = document.getElementById('motmVotesChart').getContext('2d');
+      // Calculate the sum of votes from motmVotesData
       const votesArray = Object.values(motmVotesData);
       const sumVotes = votesArray.reduce((acc, val) => acc + val, 0);
       const noVote = totalVoters - sumVotes;
-      const labels = [...Object.keys(motmVotesData), "No Vote"];
-      const votes = [...Object.values(motmVotesData), noVote];
+      
+      // Prepare labels and data arrays
+      const labels = Object.keys(motmVotesData);
+      const votes = Object.values(motmVotesData);
+      labels.push("No Vote");
+      votes.push(noVote);
+      
       new Chart(ctx, {
         type: 'bar',
-        data: { labels, datasets: [{ label: 'MOTM Votes', data: votes, backgroundColor: '#FFC107' }] },
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'MOTM Votes',
+            data: votes,
+            backgroundColor: '#FFC107'
+          }]
+        },
         options: {
           responsive: true,
           plugins: {
-            datalabels: { display: true, formatter: (value) => value, color: '#000' }
+            datalabels: {
+              display: true,
+              formatter: (value) => value,
+              color: '#000'
+            }
           },
-          scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                precision: 0
+              }
+            }
+          }
         }
       });
     }
+    
+    // Render matches on page load
+    renderMatches();
   </script>
 </body>
 </html>

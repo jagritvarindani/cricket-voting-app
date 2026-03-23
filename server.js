@@ -7,11 +7,12 @@ const app = express();
 app.use(express.json());
 app.use(express.static('public')); // serve static files from public/
 
-// File paths — DATA_DIR env var points to Render persistent disk (mounted at /data)
+// File paths — DATA_DIR points to Render persistent disk (/data)
+// Falls back to local directory for development
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const votersFile = path.join(DATA_DIR, 'votersPool.json');
 const resultsFile = path.join(DATA_DIR, 'matchResults.json');
-const matchesFile = path.join(__dirname, 'matches.json'); // read-only match schedule
+const matchesFile = path.join(__dirname, 'matches.json'); // read-only, lives in repo
 
 // Ensure data directory exists
 if (!fs.existsSync(DATA_DIR)) {
@@ -83,6 +84,7 @@ app.post('/vote', (req, res) => {
   if (userIndex === -1) {
     return res.status(400).json({ success: false, message: 'User not found' });
   }
+  // Update vote for the match if it exists or add new vote
   const voteIndex = data.votersPool[userIndex].votingInfo.findIndex(info => info.matchName === voteDetails.matchName);
   if (voteIndex !== -1) {
     data.votersPool[userIndex].votingInfo[voteIndex] = voteDetails;
@@ -146,24 +148,30 @@ app.post('/finalize-match', (req, res) => {
   const resultsData = readResultsData();
   const matchResult = resultsData.results.find(r => r.matchName === matchName);
 
+  // If the match is cancelled, do not update financials.
   if (matchResult && matchResult.cancelled) {
     return res.json({ success: true, message: "Match cancelled. No financial updates." });
   }
 
+  // Check if the match has already been finalized
   if (matchResult && matchResult.finalized) {
     return res.json({ success: true, message: "Match already finalized. No further updates applied." });
   }
 
+  // Ensure that match result is fully declared
   if (!matchResult || !matchResult.winner || !matchResult.declaredMotm) {
     return res.status(400).json({ success: false, message: 'Match result not fully declared yet' });
   }
 
   const votersData = readVotersData();
+  // Assume every voter has same contributions
   const sample = votersData.votersPool[0];
   const perMatchContri = sample.perMatchContri;
   const perMotmContri = sample.perMotmContri;
 
+  // -------------------------
   // TEAM PREDICTION CALC
+  // -------------------------
   const winningVoters = votersData.votersPool.filter(voter => {
     const vote = voter.votingInfo.find(v => v.matchName === matchName);
     return vote && vote.votedTeam === matchResult.winner;
@@ -178,7 +186,9 @@ app.post('/finalize-match', (req, res) => {
   const totalDeductionTeam = countLosing * perMatchContri;
   const bonusTeam = (countWinning > 0) ? (totalDeductionTeam / countWinning) : 0;
 
+  // -------------------------
   // MOTM PREDICTION CALC
+  // -------------------------
   const primaryMotmWinners = votersData.votersPool.filter(voter => {
     const vote = voter.votingInfo.find(v => v.matchName === matchName);
     if (!vote || !vote.motm) return false;
@@ -191,6 +201,7 @@ app.post('/finalize-match', (req, res) => {
   if (!useFallback) {
     motmWinningVoters = primaryMotmWinners;
   } else {
+    // fallback => correct team = motm winner
     motmWinningVoters = votersData.votersPool.filter(voter => {
       const vote = voter.votingInfo.find(v => v.matchName === matchName);
       return vote && vote.votedTeam === matchResult.winner;
@@ -203,16 +214,20 @@ app.post('/finalize-match', (req, res) => {
   const totalDeductionMotm = countWrongMotm * perMotmContri;
   const bonusMotm = (countCorrectMotm > 0) ? (totalDeductionMotm / countCorrectMotm) : 0;
 
+  // -------------------------
   // UPDATE VOTER FINANCIALS
+  // -------------------------
   votersData.votersPool = votersData.votersPool.map(voter => {
     const vote = voter.votingInfo.find(v => v.matchName === matchName);
 
+    // TEAM:
     if (vote && vote.votedTeam === matchResult.winner) {
       voter.currentStanding += bonusTeam;
     } else {
       voter.currentStanding -= perMatchContri;
     }
 
+    // MOTM:
     if (!vote || !vote.motm) {
       voter.currentStanding -= perMotmContri;
     } else {
@@ -235,6 +250,7 @@ app.post('/finalize-match', (req, res) => {
 
   writeVotersData(votersData);
 
+  // Mark as finalized
   if (matchResult) {
     matchResult.finalized = true;
   } else {
@@ -259,6 +275,17 @@ app.get('/voters', (req, res) => {
 
 app.get('/results', (req, res) => {
   res.json(readResultsData());
+});
+
+// ---------------------
+// MATCHES ENDPOINT
+// ---------------------
+app.get('/matches', (req, res) => {
+  try {
+    res.json(readMatchesData());
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load matches' });
+  }
 });
 
 // ---------------------
@@ -298,14 +325,4 @@ app.get('/vote-stats', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
-});
-
-// Serve matches schedule
-app.get('/matches', (req, res) => {
-  try {
-    const matches = readMatchesData();
-    res.json(matches);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to load matches' });
-  }
 });

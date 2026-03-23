@@ -18,7 +18,13 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": ["cricket", "voting", "matches", "interactive", "ui"],
+  "keywords": [
+    "cricket",
+    "voting",
+    "matches",
+    "interactive",
+    "ui"
+  ],
   "author": "Jagrit Varindani",
   "license": "MIT"
 }
