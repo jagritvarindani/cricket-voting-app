@@ -51,16 +51,6 @@
       "votingInfo": []
     },
     {
-      "name": "Gurpreet",
-      "email": "gurpreet@yahoo.com",
-      "password": "gurp567",
-      "startingContribution": 1000,
-      "perMatchContri": 30,
-      "perMotmContri": 10,
-      "currentStanding": 1000,
-      "votingInfo": []
-    },
-    {
       "name": "Amardeep",
       "email": "amar@yahoo.com",
       "password": "amar678",
@@ -231,16 +221,6 @@
       "votingInfo": []
     },
     {
-      "name": "Rishi",
-      "email": "rishi@aol.com",
-      "password": "rish807",
-      "startingContribution": 1000,
-      "perMatchContri": 30,
-      "perMotmContri": 10,
-      "currentStanding": 1000,
-      "votingInfo": []
-    },
-    {
       "name": "Ajay",
       "email": "ajay@aol.com",
       "password": "ajay706",
@@ -311,16 +291,6 @@
       "votingInfo": []
     },
     {
-      "name": "Kanhaiya",
-      "email": "kanhaiya@msn.com",
-      "password": "kanh101",
-      "startingContribution": 1000,
-      "perMatchContri": 30,
-      "perMotmContri": 10,
-      "currentStanding": 1000,
-      "votingInfo": []
-    },
-    {
       "name": "Vipul",
       "email": "vipul@msn.com",
       "password": "vipu102",
@@ -334,16 +304,6 @@
       "name": "Praful",
       "email": "praful@msn.com",
       "password": "praf203",
-      "startingContribution": 1000,
-      "perMatchContri": 30,
-      "perMotmContri": 10,
-      "currentStanding": 1000,
-      "votingInfo": []
-    },
-    {
-      "name": "Shubham",
-      "email": "shubham@aol.com",
-      "password": "shub304",
       "startingContribution": 1000,
       "perMatchContri": 30,
       "perMotmContri": 10,
