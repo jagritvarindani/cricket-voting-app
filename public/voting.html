@@ -276,8 +276,8 @@
       const teamB = teamNames[1];
       const teamAPlayers = match.teams[teamA];
       const teamBPlayers = match.teams[teamB];
-      const matchDateTime = new Date(`${match.date}T${match.time}:00`);
-      const freezeTime = matchDateTime.getTime() - 60000;
+      const matchDateTime = new Date(`${match.date}T${match.time}:00+05:30`);
+      const freezeTime = matchDateTime.getTime() - (30 * 60 * 1000); // 30 mins before match
       const isVotingClosed = Date.now() >= freezeTime;
       
       if (!isVotingClosed) {
@@ -376,8 +376,8 @@
     
     function submitVotes(matchTitle) {
       const match = matches.find(m => m.title === matchTitle);
-      const matchDateTime = new Date(`${match.date}T${match.time}:00`);
-      const freezeTime = matchDateTime.getTime() - 60000;
+      const matchDateTime = new Date(`${match.date}T${match.time}:00+05:30`);
+      const freezeTime = matchDateTime.getTime() - (30 * 60 * 1000); // 30 mins before match
       if (Date.now() >= freezeTime) {
         alert("Voting is closed.");
         closeModal();
