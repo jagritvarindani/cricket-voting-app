@@ -208,7 +208,7 @@
           match.declaredMotm = resObj.declaredMotm;
           match.cancelled = !!resObj.cancelled;
         }
-        const matchDateTime = new Date(`${match.date}T${match.time}:00`);
+        const matchDateTime = new Date(`${match.date}T${match.time}:00+05:30`);
         match.startTime = matchDateTime.getTime(); // store match start time
         match.freezeTime = match.startTime - 60000;
       });
@@ -226,7 +226,7 @@
             return;
           }
           // New check: if the match has not started yet, hide voting information.
-          if (Date.now() < match.startTime) {
+          if (Date.now() < match.startTime + (30 * 60 * 1000)) {
             row += `<td><div class="info-line">Voting info hidden until match starts</div></td>`;
             return;
           }
