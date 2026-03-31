@@ -226,7 +226,7 @@
             return;
           }
           // New check: if the match has not started yet, hide voting information.
-          if (Date.now() < match.startTime + (30 * 60 * 1000)) {
+          if (Date.now() < match.startTime - (30 * 60 * 1000)) {
             row += `<td><div class="info-line">Voting info hidden until match starts</div></td>`;
             return;
           }
