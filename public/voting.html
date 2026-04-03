@@ -567,6 +567,7 @@
         options: {
           indexAxis: 'y',
           responsive: true,
+          maintainAspectRatio: false,
           plugins: {
             datalabels: {
               display: true,
@@ -579,6 +580,14 @@
               beginAtZero: true,
               ticks: {
                 precision: 0
+              }
+            },
+            y: {
+              ticks: {
+                autoSkip: false,   // ✅ FORCE ALL NAMES
+                font: {
+                  size: 12         // optional: slightly smaller text
+                }
               }
             }
           }
