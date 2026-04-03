@@ -553,6 +553,8 @@
       const votes = Object.values(motmVotesData);
       labels.push("No Vote");
       votes.push(noVote);
+
+      document.getElementById('motmVotesChart').height = labels.length * 40;
       
       new Chart(ctx, {
         type: 'bar',
