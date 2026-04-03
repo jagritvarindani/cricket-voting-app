@@ -541,53 +541,58 @@
       });
     }
     
-    function renderMotmVotesChart(motmVotesData, totalVoters) {
-      const ctx = document.getElementById('motmVotesChart').getContext('2d');
-      // Calculate the sum of votes from motmVotesData
-      const votesArray = Object.values(motmVotesData);
-      const sumVotes = votesArray.reduce((acc, val) => acc + val, 0);
-      const noVote = totalVoters - sumVotes;
-      
-      // Prepare labels and data arrays
-      const labels = Object.keys(motmVotesData);
-      const votes = Object.values(motmVotesData);
-      labels.push("No Vote");
-      votes.push(noVote);
-      
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: 'MOTM Votes',
-            data: votes,
-            backgroundColor: '#FFC107'
-          }]
+function renderMotmVotesChart(motmVotesData, totalVoters) {
+  const canvas = document.getElementById('motmVotesChart');
+
+  const labels = Object.keys(motmVotesData);
+  const votes = Object.values(motmVotesData);
+
+  const votesArray = Object.values(motmVotesData);
+  const sumVotes = votesArray.reduce((acc, val) => acc + val, 0);
+  const noVote = totalVoters - sumVotes;
+
+  labels.push("No Vote");
+  votes.push(noVote);
+
+  // 🔥 FIX: Dynamic height
+  canvas.height = labels.length * 40;
+
+  const ctx = canvas.getContext('2d');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'MOTM Votes',
+        data: votes,
+        backgroundColor: '#FFC107'
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false, // 🔥 FIX
+      plugins: {
+        datalabels: {
+          display: true,
+          formatter: (value) => value,
+          color: '#000'
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: {
+            precision: 0
+          }
         },
-        options: {
-          indexAxis: 'y',
-          responsive: true,
-          plugins: {
-            datalabels: {
-              display: true,
-              formatter: (value) => value,
-              color: '#000'
-            }
-          },
-          scales: {
-            x: {
-              beginAtZero: true,
-              ticks: {
-                precision: 0
-              }
-            }
+        y: {
+          ticks: {
+            autoSkip: false // 🔥 FIX
           }
         }
-      });
+      }
     }
-    
-    // Load matches then render
-    loadMatches().then(() => renderMatches());
-  </script>
-</body>
-</html>
+  });
+}
