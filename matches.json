@@ -4451,5 +4451,66 @@
         "Nandre Burger"
       ]
     }
+  },
+  {
+    "title": "IPL 100 - Royal Challengers Bengaluru vs Gujarat Titans",
+    "date": "2026-05-31",
+    "time": "19:30",
+    "teams": {
+      "Royal Challengers Bengaluru": [
+        "Rajat Patidar",
+        "Devdutt Padikkal",
+        "Virat Kohli",
+        "Phil Salt",
+        "Jitesh Sharma",
+        "Jordan Cox",
+        "Krunal Pandya",
+        "Swapnil Singh",
+        "Tim David",
+        "Romario Shepherd",
+        "Jacob Bethell",
+        "Venkatesh Iyer",
+        "Satvik Deswal",
+        "Mangesh Yadav",
+        "Vicky Ostwal",
+        "Vihaan Malhotra",
+        "Kanishk Chouhan",
+        "Josh Hazlewood",
+        "Rasikh Dar",
+        "Suyash Sharma",
+        "Bhuvneshwar Kumar",
+        "Nuwan Thushara",
+        "Abhinandan Singh",
+        "Jacob Duffy",
+        "Yash Dayal"
+      ],
+      "Gujarat Titans": [
+        "Shubman Gill",
+        "Jos Buttler",
+        "Kumar Kushagra",
+        "Anuj Rawat",
+        "Tom Banton",
+        "Glenn Phillips",
+        "Nishant Sindhu",
+        "Washington Sundar",
+        "Arshad Khan",
+        "Sai Kishore",
+        "Jayant Yadav",
+        "Jason Holder",
+        "Sai Sudharsan",
+        "Shahrukh Khan",
+        "Kagiso Rabada",
+        "Mohammad Siraj",
+        "Prasidh Krishna",
+        "Manav Suthar",
+        "Gurnoor Brar",
+        "Ishant Sharma",
+        "Ashok Sharma",
+        "Prithvi Raj Yarra",
+        "Luke Wood",
+        "Rahul Tewatia",
+        "Rashid Khan"
+      ]
+    }
   }
 ]
